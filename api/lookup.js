@@ -1,6 +1,22 @@
 // api/lookup.js
 import { checkRateLimit } from './_lib/rate-limiter.js';
-import { getWardsCollection } from './_lib/db.js';
+import * as turf from '@turf/turf';
+import fs from 'fs';
+import path from 'path';
+
+// Load detailed ward data from JSON file instead of MongoDB for now
+let detailedWardDataArray = null;
+let detailedWardMap = null;
+
+try {
+    const dataPath = path.resolve('./api/_data/detailed_ward_data.json');
+    const fileContents = fs.readFileSync(dataPath, 'utf-8');
+    detailedWardDataArray = JSON.parse(fileContents);
+    detailedWardMap = new Map(detailedWardDataArray);
+    console.log("✅ Detailed ward data loaded and cached in memory.");
+} catch (error) {
+    console.error("❌ Failed to load detailed_ward_data.json:", error);
+}
 
 export default async function handler(req, res) {
     // 1. Enforce Rate Limiting
@@ -25,14 +41,13 @@ export default async function handler(req, res) {
         return res.status(400).json({ messageKey: 'ERROR_MISSING_ADDRESS' });
     }
 
+    if (!detailedWardMap) {
+        return res.status(500).json({ messageKey: 'ERROR_UNKNOWN', details: "Server data is not available." });
+    }
+
     try {
-        const wardsCollection = await getWardsCollection();
-        
-        const wardData = await wardsCollection.findOne({
-            old_province_name: oldProvince,
-            old_district_name: oldDistrict,
-            old_ward_name: oldWard
-        });
+        const lookupKey = `${oldProvince}|${oldDistrict}|${oldWard}`;
+        const wardData = detailedWardMap.get(lookupKey);
 
         if (!wardData) {
             return res.status(404).json({ messageKey: 'ERROR_NOT_FOUND' });
@@ -56,47 +71,39 @@ export default async function handler(req, res) {
             });
         }
 
-        // Perform the geospatial query using MongoDB's $geoIntersects
-        const point = {
-            type: 'Point',
-            coordinates: [userCoordinates.lon, userCoordinates.lat]
-        };
+        try {
+            const userPoint = turf.point([userCoordinates.lon, userCoordinates.lat]);
+            const splittedWards = wardData.new_address.new_ward_name;
+            let foundWard = null;
 
-        const result = await wardsCollection.findOne({
-             // Match the same old ward again
-            _id: wardData._id,
-            // And find which new polygon the user's point is in
-            geo: {
-                $geoIntersects: {
-                    $geometry: point
+            for (const newWard of splittedWards) {
+                // Create a polygon from the coordinates
+                const wardPolygon = turf.multiPolygon(newWard.new_ward_coordinate);
+                if (turf.booleanPointInPolygon(userPoint, wardPolygon)) {
+                    foundWard = newWard;
+                    break;
                 }
             }
-        }, {
-            // Only return the part of the geo collection that matched
-            projection: { 'geo.geometries.$': 1, 'new_address.new_province_name': 1 }
-        });
 
-        if (result && result.geo && result.geo.geometries.length > 0) {
-            const matchedGeometry = result.geo.geometries[0];
-            const { new_ward_name, old_merge_ward, new_ward_bbox } = matchedGeometry.properties;
-            
-            return res.status(200).json({
-                type: 'SPLITTED_MATCH_FOUND',
-                newAddress: {
-                    new_ward_name: new_ward_name,
-                    new_province_name: result.new_address.new_province_name
-                },
-                geoDetails: {
-                    ...matchedGeometry.properties,
-                    centroid: [userCoordinates.lon, userCoordinates.lat] // Use the provided coordinates
-                },
-                oldAddress: { oldProvince, oldDistrict, oldWard }
-            });
-        } else {
-            return res.status(404).json({
-                type: 'SPLITTED_NO_MATCH',
-                messageKey: 'ERROR_SPLIT_NO_MATCH'
-            });
+            if (foundWard) {
+                return res.status(200).json({
+                    type: 'SPLITTED_MATCH_FOUND',
+                    newAddress: {
+                        new_ward_name: foundWard.new_ward_name,
+                        new_province_name: wardData.new_address.new_province_name
+                    },
+                    geoDetails: foundWard,
+                    oldAddress: { oldProvince, oldDistrict, oldWard }
+                });
+            } else {
+                return res.status(404).json({
+                    type: 'SPLITTED_NO_MATCH',
+                    messageKey: 'ERROR_SPLIT_NO_MATCH'
+                });
+            }
+        } catch (geoError) {
+            console.error("Geospatial query error:", geoError);
+            return res.status(500).json({ messageKey: 'ERROR_SERVER_GEO' });
         }
     } catch (error) {
         console.error('Lookup error:', error);
