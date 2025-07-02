@@ -2,13 +2,10 @@
 import { checkRateLimit } from './_lib/rate-limiter.js';
 import { getWardsCollection } from './_lib/db.js';
 import axios from 'axios';
+import * as turf from '@turf/turf'; // We need turf.js on the backend now
 
-// --- IMPORTANT: Nominatim Usage Policy ---
-// Nominatim requires a valid User-Agent header that identifies your application.
-// Replace 'YOUR_APP_URL_HERE' with your actual Vercel app URL.
-// This helps them contact you if there's an issue.
 const geocodingHeaders = {
-    'User-Agent': 'VietNamAddressConverter/1.0 (https://dia-chi-viet-nam-converter.vercel.app)'
+    'User-Agent': 'VietNamAddressConverter/1.0 (https://dia-chi-viet-nam-converter.vercel.app/)' // Please keep this updated with your actual URL
 };
 
 export default async function handler(req, res) {
@@ -63,10 +60,9 @@ export default async function handler(req, res) {
             });
         }
 
-        // --- NEW: Structured Geocoding with Fallback ---
+        // Geocoding logic
         let userCoordinates;
         try {
-            // 1. Attempt Structured Search (more accurate)
             const structuredParams = new URLSearchParams({
                 street: streetInfo,
                 city: oldProvince,
@@ -75,16 +71,12 @@ export default async function handler(req, res) {
                 polygon_geojson: '1'
             });
             const structuredUrl = `https://nominatim.openstreetmap.org/search?${structuredParams.toString()}`;
-            console.log(`[GEOCODING] Attempting structured search: ${structuredUrl}`);
             const structuredResponse = await axios.get(structuredUrl, { headers: geocodingHeaders });
 
             if (structuredResponse.data && structuredResponse.data.length > 0) {
                 const { lat, lon } = structuredResponse.data[0];
                 userCoordinates = { lat: parseFloat(lat), lon: parseFloat(lon) };
-                console.log(`[GEOCODING] Structured search SUCCESS.`);
             } else {
-                // 2. Fallback to Unstructured Search
-                console.warn(`[GEOCODING] Structured search failed. Falling back to unstructured.`);
                 const unstructuredQuery = `${streetInfo}, ${oldWard}, ${oldDistrict}, ${oldProvince}, Vietnam`;
                 const unstructuredUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(unstructuredQuery)}`;
                 const fallbackResponse = await axios.get(unstructuredUrl, { headers: geocodingHeaders });
@@ -92,10 +84,7 @@ export default async function handler(req, res) {
                 if (fallbackResponse.data && fallbackResponse.data.length > 0) {
                     const { lat, lon } = fallbackResponse.data[0];
                     userCoordinates = { lat: parseFloat(lat), lon: parseFloat(lon) };
-                    console.log(`[GEOCODING] Unstructured fallback SUCCESS.`);
                 } else {
-                    // Both methods failed
-                    console.error(`[GEOCODING] All geocoding methods failed.`);
                     return res.status(404).json({ messageKey: 'ERROR_GEOCODING_FAILED' });
                 }
             }
@@ -103,42 +92,46 @@ export default async function handler(req, res) {
             console.error('Backend Geocoding Error:', geoError);
             return res.status(500).json({ messageKey: 'ERROR_GEOCODING_FAILED' });
         }
-        // --- End of Geocoding logic ---
 
-        const point = {
-            type: 'Point',
-            coordinates: [userCoordinates.lon, userCoordinates.lat]
-        };
+        // --- NEW, CORRECTED GEOSPATIAL LOGIC ---
+        const userPoint = turf.point([userCoordinates.lon, userCoordinates.lat]);
+        let foundWardDetails = null;
 
-        const result = await wardsCollection.findOne({
-            _id: wardData._id,
-            geo: { $geoIntersects: { $geometry: point } }
-        }, {
-            projection: { 'geo.geometries.$': 1, 'new_address.new_province_name': 1 }
-        });
-
-        if (result && result.geo && result.geo.geometries.length > 0) {
-            const matchedGeometry = result.geo.geometries[0];
-            const { new_ward_name } = matchedGeometry.properties;
-            
+        // The wardData we fetched earlier contains the full 'geo.geometries' array.
+        // We now iterate through it in memory to find the exact match.
+        if (wardData.geo && wardData.geo.geometries) {
+            for (const newWardGeometry of wardData.geo.geometries) {
+                // Reconstruct the polygon for turf.js to check
+                const wardPolygon = turf.multiPolygon(newWardGeometry.coordinates);
+                if (turf.booleanPointInPolygon(userPoint, wardPolygon)) {
+                    // We found the specific new ward!
+                    foundWardDetails = newWardGeometry.properties;
+                    break; // Exit the loop once a match is found
+                }
+            }
+        }
+        
+        if (foundWardDetails) {
             return res.status(200).json({
                 type: 'SPLITTED_MATCH_FOUND',
                 newAddress: {
-                    new_ward_name: new_ward_name,
-                    new_province_name: result.new_address.new_province_name
+                    new_ward_name: foundWardDetails.new_ward_name,
+                    new_province_name: wardData.new_address.new_province_name,
                 },
                 geoDetails: {
-                    ...matchedGeometry.properties,
+                    ...foundWardDetails,
                     centroid: [userCoordinates.lon, userCoordinates.lat]
                 },
                 oldAddress: { oldProvince, oldDistrict, oldWard }
             });
         } else {
+            // This means the point was not inside any of the new ward polygons
             return res.status(404).json({
                 type: 'SPLITTED_NO_MATCH',
                 messageKey: 'ERROR_SPLIT_NO_MATCH'
             });
         }
+        // --- END OF CORRECTED LOGIC ---
 
     } catch (error) {
         console.error('Lookup error:', error);
