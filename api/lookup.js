@@ -2,10 +2,10 @@
 import { checkRateLimit } from './_lib/rate-limiter.js';
 import { getWardsCollection } from './_lib/db.js';
 import axios from 'axios';
-import * as turf from '@turf/turf'; // We need turf.js on the backend now
+import * as turf from '@turf/turf';
 
 const geocodingHeaders = {
-    'User-Agent': 'VietNamAddressConverter/1.0 (https://dia-chi-viet-nam-converter.vercel.app/)' // Please keep this updated with your actual URL
+    'User-Agent': 'VietNamAddressConverter/1.0 (https://dia-chi-viet-nam-converter.vercel.app/)'
 };
 
 export default async function handler(req, res) {
@@ -59,6 +59,8 @@ export default async function handler(req, res) {
                 messageKey: 'INFO_SPLIT_NEEDS_STREET_INFO'
             });
         }
+        
+        const potentialNewWards = wardData.new_address.new_ward_name.map(w => w.new_ward_name);
 
         // Geocoding logic
         let userCoordinates;
@@ -85,28 +87,31 @@ export default async function handler(req, res) {
                     const { lat, lon } = fallbackResponse.data[0];
                     userCoordinates = { lat: parseFloat(lat), lon: parseFloat(lon) };
                 } else {
-                    return res.status(404).json({ messageKey: 'ERROR_GEOCODING_FAILED' });
+                    // **MODIFICATION 1: Add potential wards to geocoding failure**
+                    return res.status(404).json({ 
+                        messageKey: 'ERROR_GEOCODING_FAILED',
+                        potentialNewWards: potentialNewWards
+                    });
                 }
             }
         } catch (geoError) {
             console.error('Backend Geocoding Error:', geoError);
-            return res.status(500).json({ messageKey: 'ERROR_GEOCODING_FAILED' });
+             // **MODIFICATION 2: Add potential wards to geocoding failure**
+            return res.status(500).json({ 
+                messageKey: 'ERROR_GEOCODING_FAILED',
+                potentialNewWards: potentialNewWards
+            });
         }
 
-        // --- NEW, CORRECTED GEOSPATIAL LOGIC ---
         const userPoint = turf.point([userCoordinates.lon, userCoordinates.lat]);
         let foundWardDetails = null;
 
-        // The wardData we fetched earlier contains the full 'geo.geometries' array.
-        // We now iterate through it in memory to find the exact match.
         if (wardData.geo && wardData.geo.geometries) {
             for (const newWardGeometry of wardData.geo.geometries) {
-                // Reconstruct the polygon for turf.js to check
                 const wardPolygon = turf.multiPolygon(newWardGeometry.coordinates);
                 if (turf.booleanPointInPolygon(userPoint, wardPolygon)) {
-                    // We found the specific new ward!
                     foundWardDetails = newWardGeometry.properties;
-                    break; // Exit the loop once a match is found
+                    break;
                 }
             }
         }
@@ -125,13 +130,13 @@ export default async function handler(req, res) {
                 oldAddress: { oldProvince, oldDistrict, oldWard }
             });
         } else {
-            // This means the point was not inside any of the new ward polygons
+            // **MODIFICATION 3: Add potential wards to split match failure**
             return res.status(404).json({
                 type: 'SPLITTED_NO_MATCH',
-                messageKey: 'ERROR_SPLIT_NO_MATCH'
+                messageKey: 'ERROR_SPLIT_NO_MATCH',
+                potentialNewWards: potentialNewWards
             });
         }
-        // --- END OF CORRECTED LOGIC ---
 
     } catch (error) {
         console.error('Lookup error:', error);

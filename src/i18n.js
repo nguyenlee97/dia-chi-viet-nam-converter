@@ -2,10 +2,15 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-// Vietnamese translations
 const resources = {
   vi: {
     translation: {
+      // ... (all existing translations) ...
+
+      // New Translations for Error Display
+      "errorTitle": "Đã xảy ra lỗi",
+      "potentialWardsTitle": "Các Phường/Xã mới có thể thuộc về:",
+
       // General UI
       "appTitle": "Công Cụ Tra Cứu Địa Giới Hành Chính Mới",
       "appSubtitle": "Dữ liệu cập nhật theo các nghị quyết về sắp xếp đơn vị hành chính cấp huyện, cấp xã.",
@@ -39,7 +44,6 @@ const resources = {
       "coordinatesUsed": "Toạ độ đã dùng (kinh độ, vĩ độ):",
 
       // Status messages
-      // This key is now sent from the backend if a user tries to look up a split ward without street info.
       "INFO_SPLIT_NEEDS_STREET_INFO": "Phường/Xã này đã được chia tách. Vui lòng nhập Số nhà, Tên đường để hệ thống tự động định vị.",
       "geocoding_success": "Đã định vị thành công",
       

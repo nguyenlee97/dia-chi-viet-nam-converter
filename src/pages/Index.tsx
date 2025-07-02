@@ -7,13 +7,19 @@ import ResultDisplay from '../components/ResultDisplay';
 import ErrorDisplay from '../components/ErrorDisplay';
 import LoadingSpinner from '../components/LoadingSpinner';
 
+// Define the shape of the error state
+interface ErrorState {
+  message: string;
+  potentialNewWards?: string[];
+}
+
 const Index = () => {
   const { t } = useTranslation();
   const [selectionTree, setSelectionTree] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [result, setResult] = useState<any>(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<ErrorState | null>(null); // State is now an object or null
   const [notification, setNotification] = useState('');
 
   useEffect(() => {
@@ -22,8 +28,7 @@ const Index = () => {
         const response = await axios.get('/api/selection-data');
         setSelectionTree(response.data);
       } catch (err) {
-        console.error('Error loading selection data:', err);
-        setError(t('ERROR_NETWORK'));
+        setError({ message: t('ERROR_NETWORK') });
       } finally {
         setIsInitialLoading(false);
       }
@@ -39,40 +44,34 @@ const Index = () => {
     ward: string;
   }) => {
     setIsLoading(true);
-    setError('');
+    setError(null); // Reset error state
     setNotification('');
     setResult(null);
 
     try {
-      // Create the single payload for the backend
       const payload = {
         oldProvince: address.province,
         oldDistrict: address.district,
         oldWard: address.ward,
-        streetInfo: address.streetInfo, // Pass street info directly
+        streetInfo: address.streetInfo,
       };
 
-      // Make one single API call
       const response = await axios.post('/api/lookup', payload);
-      
-      // The backend now returns the final result directly
       setResult(response.data);
 
     } catch (err: any) {
       console.error('Lookup error:', err);
       const errData = err.response?.data;
       if (errData && errData.messageKey) {
-        // The backend now sends an info message for missing street info,
-        // which we can treat as an error on the frontend.
-        if (errData.messageKey === 'INFO_SPLIT_NEEDS_STREET_INFO') {
-          setError(t(errData.messageKey));
-        } else {
-          setError(t(errData.messageKey, { meta: errData.meta || {} }));
-        }
+        // Set the error state as an object
+        setError({
+          message: t(errData.messageKey, { meta: errData.meta || {} }),
+          potentialNewWards: errData.potentialNewWards
+        });
       } else if (err.code === 'ERR_NETWORK') {
-        setError(t('ERROR_NETWORK'));
+        setError({ message: t('ERROR_NETWORK') });
       } else {
-        setError(t('ERROR_UNKNOWN'));
+        setError({ message: t('ERROR_UNKNOWN') });
       }
     } finally {
       setIsLoading(false);
@@ -106,7 +105,7 @@ const Index = () => {
             isLoading={isLoading}
           />
           {notification && (
-            <ErrorDisplay error={notification} type="info" />
+            <ErrorDisplay error={{ message: notification }} type="info" />
           )}
           {error && (
             <ErrorDisplay error={error} type="error" />
@@ -118,17 +117,14 @@ const Index = () => {
         
         <footer className="text-center mt-12 space-y-2 text-sm text-gray-400">
             <p>{t('footerText')}</p>
-
-            {/* --- SIGNATURE START --- */}
             <div className="flex items-center justify-center gap-2 pt-2 text-gray-500">
                 <span>Created by Momolita</span>
                 <img 
                     src="https://s3.getstickerpack.com/storage/uploads/sticker-pack/genshin-impact-hutao/tray_large.png?2c9966a5520fdab6c03fda5ca193f388&d=200x200" 
                     alt="Hu Tao"
-                    className="h-6 w-6" // This makes the image small (24x24 pixels)
+                    className="h-6 w-6"
                 />
             </div>
-            {/* --- SIGNATURE END --- */}
         </footer>
       </div>
     </div>
