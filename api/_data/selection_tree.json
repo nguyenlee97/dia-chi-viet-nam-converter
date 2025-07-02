@@ -1,0 +1,64 @@
+{
+  "Hà Nội": {
+    "Quận Ba Đình": [
+      "Phường Điện Biên",
+      "Phường Đội Cấn",
+      "Phường Liễu Giai",
+      "Phường Ngọc Hà",
+      "Phường Phúc Xá"
+    ],
+    "Quận Hoàn Kiếm": [
+      "Phường Chương Dương",
+      "Phường Cửa Nam",
+      "Phường Đồng Xuân",
+      "Phường Hàng Bài",
+      "Phường Hàng Bồ"
+    ],
+    "Quận Hai Bà Trưng": [
+      "Phường Bách Khoa",
+      "Phường Bạch Đằng",
+      "Phường Cầu Dền",
+      "Phường Đống Mác",
+      "Phường Lê Đại Hành"
+    ]
+  },
+  "TP. Hồ Chí Minh": {
+    "Quận 1": [
+      "Phường Bến Nghé",
+      "Phường Bến Thành",
+      "Phường Cầu Kho",
+      "Phường Cầu Ông Lãnh",
+      "Phường Cô Giang"
+    ],
+    "Quận 3": [
+      "Phường 01",
+      "Phường 02",
+      "Phường 03",
+      "Phường 04",
+      "Phường 05"
+    ],
+    "Quận Bình Thạnh": [
+      "Phường 01",
+      "Phường 02",
+      "Phường 03",
+      "Phường 11",
+      "Phường 12"
+    ]
+  },
+  "Đà Nẵng": {
+    "Quận Hải Châu": [
+      "Phường Hải Châu I",
+      "Phường Hải Châu II",
+      "Phường Thanh Bình",
+      "Phường Thuận Phước",
+      "Phường Thạch Thang"
+    ],
+    "Quận Thanh Khê": [
+      "Phường Thanh Khê Đông",
+      "Phường Thanh Khê Tây",
+      "Phường Tam Thuận",
+      "Phường An Khê",
+      "Phường Tân Chính"
+    ]
+  }
+}

@@ -1,0 +1,57 @@
+[
+  [
+    "Hà Nội|Quận Ba Đình|Phường Điện Biên",
+    {
+      "is_splitted": false,
+      "new_address": "Phường Điện Biên, Quận Ba Đình, TP. Hà Nội"
+    }
+  ],
+  [
+    "TP. Hồ Chí Minh|Quận 1|Phường Bến Nghé",
+    {
+      "is_splitted": true,
+      "new_address": {
+        "new_province_name": "TP. Hồ Chí Minh",
+        "new_ward_name": [
+          {
+            "new_ward_name": "Phường Bến Nghé Đông",
+            "centroid": [106.7009, 10.7769],
+            "new_ward_coordinate": [
+              [
+                [
+                  [106.7, 10.775],
+                  [106.702, 10.775],
+                  [106.702, 10.778],
+                  [106.7, 10.778],
+                  [106.7, 10.775]
+                ]
+              ]
+            ]
+          },
+          {
+            "new_ward_name": "Phường Bến Nghé Tây",
+            "centroid": [106.6989, 10.7759],
+            "new_ward_coordinate": [
+              [
+                [
+                  [106.697, 10.774],
+                  [106.699, 10.774],
+                  [106.699, 10.777],
+                  [106.697, 10.777],
+                  [106.697, 10.774]
+                ]
+              ]
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  [
+    "Đà Nẵng|Quận Hải Châu|Phường Hải Châu I",
+    {
+      "is_splitted": false,
+      "new_address": "Phường Hải Châu I, Quận Hải Châu, TP. Đà Nẵng"
+    }
+  ]
+]

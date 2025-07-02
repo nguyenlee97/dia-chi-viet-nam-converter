@@ -52,6 +52,20 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				// Vietnamese theme colors
+				vietnam: {
+					red: 'hsl(var(--vietnam-red))',
+					gold: 'hsl(var(--vietnam-gold))'
+				},
+				professional: {
+					blue: 'hsl(var(--professional-blue))'
+				},
+				government: {
+					gray: 'hsl(var(--government-gray))'
+				},
+				success: 'hsl(var(--success))',
+				warning: 'hsl(var(--warning))',
+				info: 'hsl(var(--info))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
