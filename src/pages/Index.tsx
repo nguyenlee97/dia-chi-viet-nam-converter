@@ -116,8 +116,19 @@ const Index = () => {
           )}
         </main>
         
-        <footer className="text-center mt-12 text-sm text-gray-400">
+        <footer className="text-center mt-12 space-y-2 text-sm text-gray-400">
             <p>{t('footerText')}</p>
+
+            {/* --- SIGNATURE START --- */}
+            <div className="flex items-center justify-center gap-2 pt-2 text-gray-500">
+                <span>Created by Momolita</span>
+                <img 
+                    src="https://s3.getstickerpack.com/storage/uploads/sticker-pack/genshin-impact-hutao/tray_large.png?2c9966a5520fdab6c03fda5ca193f388&d=200x200" 
+                    alt="Hu Tao"
+                    className="h-6 w-6" // This makes the image small (24x24 pixels)
+                />
+            </div>
+            {/* --- SIGNATURE END --- */}
         </footer>
       </div>
     </div>
