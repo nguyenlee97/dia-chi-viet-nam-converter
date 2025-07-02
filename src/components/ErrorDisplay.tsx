@@ -5,10 +5,16 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, Clock, Shield, HelpCircle } from 'lucide-react';
 import { Badge } from './ui/badge';
 
+// Define the shape of a potential new ward
+interface PotentialWard {
+  new_ward_name: string;
+  new_province_name: string;
+}
+
 // Define the shape of the error object we expect
 interface ErrorInfo {
   message: string;
-  potentialNewWards?: string[];
+  potentialNewWards?: PotentialWard[];
 }
 
 interface ErrorDisplayProps {
@@ -48,9 +54,14 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ error, type = 'error' }) =>
              <p className="text-sm font-semibold">{t('potentialWardsTitle')}</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            {error.potentialNewWards.map((wardName, index) => (
-              <Badge key={index} variant="secondary">{wardName}</Badge>
+            {/* --- MODIFICATION START --- */}
+            {/* Map over the array of objects and display the full address */}
+            {error.potentialNewWards.map((ward, index) => (
+              <Badge key={index} variant="secondary">
+                {`${ward.new_ward_name}, ${ward.new_province_name}`}
+              </Badge>
             ))}
+            {/* --- MODIFICATION END --- */}
           </div>
         </div>
       )}

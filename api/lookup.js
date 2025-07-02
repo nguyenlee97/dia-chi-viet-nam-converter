@@ -9,7 +9,8 @@ const geocodingHeaders = {
 };
 
 export default async function handler(req, res) {
-    // 1. Enforce Rate Limiting
+    // ... (Rate limiting and other checks remain the same) ...
+
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
     const limitResult = checkRateLimit(ip);
 
@@ -20,7 +21,6 @@ export default async function handler(req, res) {
         });
     }
 
-    // 2. Process the request
     if (req.method !== 'POST') {
         return res.status(405).json({ messageKey: 'ERROR_METHOD_NOT_ALLOWED' });
     }
@@ -44,7 +44,6 @@ export default async function handler(req, res) {
             return res.status(404).json({ messageKey: 'ERROR_NOT_FOUND' });
         }
 
-        // Case 1: Merged (Simple Case)
         if (!wardData.is_splitted) {
             return res.status(200).json({
                 type: 'MERGED',
@@ -53,18 +52,24 @@ export default async function handler(req, res) {
             });
         }
 
-        // Case 2: Split (Complex Case)
         if (!streetInfo || streetInfo.trim() === '') {
             return res.status(400).json({
                 messageKey: 'INFO_SPLIT_NEEDS_STREET_INFO'
             });
         }
         
-        const potentialNewWards = wardData.new_address.new_ward_name.map(w => w.new_ward_name);
-
-        // Geocoding logic
+        // --- MODIFICATION START ---
+        // Create a more detailed list of potential new addresses.
+        const potentialNewWards = wardData.new_address.new_ward_name.map(w => ({
+            new_ward_name: w.new_ward_name,
+            new_province_name: wardData.new_address.new_province_name 
+            // Note: In the future, you could also add the new district here if it's available in your data.
+        }));
+        // --- MODIFICATION END ---
+        
         let userCoordinates;
         try {
+            // ... (Geocoding logic remains the same) ...
             const structuredParams = new URLSearchParams({
                 street: streetInfo,
                 city: oldProvince,
@@ -87,22 +92,21 @@ export default async function handler(req, res) {
                     const { lat, lon } = fallbackResponse.data[0];
                     userCoordinates = { lat: parseFloat(lat), lon: parseFloat(lon) };
                 } else {
-                    // **MODIFICATION 1: Add potential wards to geocoding failure**
                     return res.status(404).json({ 
                         messageKey: 'ERROR_GEOCODING_FAILED',
-                        potentialNewWards: potentialNewWards
+                        potentialNewWards: potentialNewWards // Return the detailed list
                     });
                 }
             }
         } catch (geoError) {
             console.error('Backend Geocoding Error:', geoError);
-             // **MODIFICATION 2: Add potential wards to geocoding failure**
             return res.status(500).json({ 
                 messageKey: 'ERROR_GEOCODING_FAILED',
-                potentialNewWards: potentialNewWards
+                potentialNewWards: potentialNewWards // Return the detailed list
             });
         }
 
+        // ... (Turf.js logic remains the same) ...
         const userPoint = turf.point([userCoordinates.lon, userCoordinates.lat]);
         let foundWardDetails = null;
 
@@ -130,11 +134,10 @@ export default async function handler(req, res) {
                 oldAddress: { oldProvince, oldDistrict, oldWard }
             });
         } else {
-            // **MODIFICATION 3: Add potential wards to split match failure**
             return res.status(404).json({
                 type: 'SPLITTED_NO_MATCH',
                 messageKey: 'ERROR_SPLIT_NO_MATCH',
-                potentialNewWards: potentialNewWards
+                potentialNewWards: potentialNewWards // Return the detailed list
             });
         }
 
