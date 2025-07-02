@@ -24,6 +24,12 @@ const resources = {
       "loadingData": "Đang tải dữ liệu...",
       "resetForm": "Nhập lại",
       
+      // Searchable Select Placeholders (NEW)
+      "provinceSearchPlaceholder": "Tìm Tỉnh/Thành...",
+      "districtSearchPlaceholder": "Tìm Quận/Huyện...",
+      "wardSearchPlaceholder": "Tìm Phường/Xã...",
+      "searchEmpty": "Không tìm thấy kết quả.",
+
       // Results
       "resultTitle": "Kết Quả Tra Cứu",
       "oldAddressLabel": "Địa chỉ cũ",

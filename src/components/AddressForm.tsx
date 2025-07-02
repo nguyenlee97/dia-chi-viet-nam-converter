@@ -4,15 +4,18 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, RotateCcw, Search } from 'lucide-react';
+import { RotateCcw, Search } from 'lucide-react';
+import { SearchableSelect } from './SearchableSelect'; // Import the new component
 
 interface AddressFormProps {
   selectionTree: any;
   onSubmit: (address: { streetInfo: string; province: string; district: string; ward: string }) => void;
   isLoading: boolean;
 }
+
+// Define a type for our select options
+type SelectOption = { value: string; label: string };
 
 const AddressForm: React.FC<AddressFormProps> = ({ selectionTree, onSubmit, isLoading }) => {
   const { t } = useTranslation();
@@ -21,23 +24,48 @@ const AddressForm: React.FC<AddressFormProps> = ({ selectionTree, onSubmit, isLo
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedWard, setSelectedWard] = useState('');
 
-  const [districts, setDistricts] = useState<string[]>([]);
-  const [wards, setWards] = useState<string[]>([]);
+  // The lists will now be stored in the { value, label } format
+  const [provinces, setProvinces] = useState<SelectOption[]>([]);
+  const [districts, setDistricts] = useState<SelectOption[]>([]);
+  const [wards, setWards] = useState<SelectOption[]>([]);
 
+  // Effect to sort and set provinces on initial load
+  useEffect(() => {
+    if (selectionTree) {
+      const provinceList = Object.keys(selectionTree)
+        .sort((a, b) => a.localeCompare(b, 'vi')) // Alphabetical sort
+        .map(p => ({ value: p, label: p }));
+      setProvinces(provinceList);
+    }
+  }, [selectionTree]);
+
+  // Effect to update districts when a province is selected
   useEffect(() => {
     if (selectedProvince && selectionTree[selectedProvince]) {
-      setDistricts(Object.keys(selectionTree[selectedProvince]));
-      setSelectedDistrict('');
-      setSelectedWard('');
-      setWards([]);
+      const districtList = Object.keys(selectionTree[selectedProvince])
+        .sort((a, b) => a.localeCompare(b, 'vi')) // Alphabetical sort
+        .map(d => ({ value: d, label: d }));
+      setDistricts(districtList);
+    } else {
+      setDistricts([]);
     }
+    setSelectedDistrict('');
+    setSelectedWard('');
+    setWards([]);
   }, [selectedProvince, selectionTree]);
 
+  // Effect to update wards when a district is selected
   useEffect(() => {
     if (selectedDistrict && selectionTree[selectedProvince] && selectionTree[selectedProvince][selectedDistrict]) {
-      setWards(selectionTree[selectedProvince][selectedDistrict]);
-      setSelectedWard('');
+      const wardList = selectionTree[selectedProvince][selectedDistrict]
+        .slice() // Create a copy before sorting
+        .sort((a: string, b: string) => a.localeCompare(b, 'vi')) // Alphabetical sort
+        .map((w: string) => ({ value: w, label: w }));
+      setWards(wardList);
+    } else {
+      setWards([]);
     }
+    setSelectedWard('');
   }, [selectedDistrict, selectedProvince, selectionTree]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -58,8 +86,6 @@ const AddressForm: React.FC<AddressFormProps> = ({ selectionTree, onSubmit, isLo
     setSelectedProvince('');
     setSelectedDistrict('');
     setSelectedWard('');
-    setDistricts([]);
-    setWards([]);
   };
 
   const isFormValid = selectedProvince && selectedDistrict && selectedWard;
@@ -95,69 +121,50 @@ const AddressForm: React.FC<AddressFormProps> = ({ selectionTree, onSubmit, isLo
               <Label className="text-sm font-medium text-foreground">
                 {t('provinceLabel')}
               </Label>
-              <Select value={selectedProvince} onValueChange={setSelectedProvince}>
-                <SelectTrigger className="border-border/60 focus:border-primary">
-                  <SelectValue placeholder={t('provincePlaceholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {selectionTree && Object.keys(selectionTree).map((province) => (
-                    <SelectItem key={province} value={province}>
-                      {province}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={selectedProvince}
+                onValueChange={setSelectedProvince}
+                options={provinces}
+                placeholder={t('provincePlaceholder')}
+                searchPlaceholder={t('provinceSearchPlaceholder')}
+                emptyText={t('searchEmpty')}
+              />
             </div>
 
             <div className="space-y-2">
               <Label className="text-sm font-medium text-foreground">
                 {t('districtLabel')}
               </Label>
-              <Select 
-                value={selectedDistrict} 
+              <SearchableSelect
+                value={selectedDistrict}
                 onValueChange={setSelectedDistrict}
+                options={districts}
+                placeholder={t('districtPlaceholder')}
+                searchPlaceholder={t('districtSearchPlaceholder')}
+                emptyText={t('searchEmpty')}
                 disabled={!selectedProvince}
-              >
-                <SelectTrigger className="border-border/60 focus:border-primary">
-                  <SelectValue placeholder={t('districtPlaceholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {districts.map((district) => (
-                    <SelectItem key={district} value={district}>
-                      {district}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </div>
 
             <div className="space-y-2">
               <Label className="text-sm font-medium text-foreground">
                 {t('wardLabel')}
               </Label>
-              <Select 
-                value={selectedWard} 
+              <SearchableSelect
+                value={selectedWard}
                 onValueChange={setSelectedWard}
+                options={wards}
+                placeholder={t('wardPlaceholder')}
+                searchPlaceholder={t('wardSearchPlaceholder')}
+                emptyText={t('searchEmpty')}
                 disabled={!selectedDistrict}
-              >
-                <SelectTrigger className="border-border/60 focus:border-primary">
-                  <SelectValue placeholder={t('wardPlaceholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {wards.map((ward) => (
-                    <SelectItem key={ward} value={ward}>
-                      {ward}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </div>
           </div>
 
-          {/* UI FIX: Increased top padding from pt-2 to pt-6 */}
           <div className="flex flex-col sm:flex-row gap-3 pt-6">
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={!isFormValid || isLoading}
               className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
             >
@@ -167,9 +174,9 @@ const AddressForm: React.FC<AddressFormProps> = ({ selectionTree, onSubmit, isLo
                 <><Search className="mr-2 h-4 w-4" /> {t('submitButton')}</>
               )}
             </Button>
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={handleReset}
               disabled={isLoading}
               className="border-border/60 hover:bg-secondary"
