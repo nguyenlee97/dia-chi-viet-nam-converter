@@ -24,7 +24,7 @@ const resources = {
       "loadingData": "Đang tải dữ liệu...",
       "resetForm": "Nhập lại",
       
-      // Searchable Select Placeholders (NEW)
+      // Searchable Select Placeholders
       "provinceSearchPlaceholder": "Tìm Tỉnh/Thành...",
       "districtSearchPlaceholder": "Tìm Quận/Huyện...",
       "wardSearchPlaceholder": "Tìm Phường/Xã...",
@@ -39,8 +39,8 @@ const resources = {
       "coordinatesUsed": "Toạ độ đã dùng (kinh độ, vĩ độ):",
 
       // Status messages
-      "info_split_needs_coords": "Phường/Xã này đã được chia tách. Vui lòng nhập Số nhà, Tên đường để hệ thống tự động định vị.",
-      "geocoding_in_progress": "Đang tìm tọa độ cho địa chỉ của bạn...",
+      // This key is now sent from the backend if a user tries to look up a split ward without street info.
+      "INFO_SPLIT_NEEDS_STREET_INFO": "Phường/Xã này đã được chia tách. Vui lòng nhập Số nhà, Tên đường để hệ thống tự động định vị.",
       "geocoding_success": "Đã định vị thành công",
       
       // Error Messages
@@ -52,7 +52,6 @@ const resources = {
       "ERROR_SPLIT_NO_MATCH": "Không thể xác định vị trí của bạn trong bất kỳ phường/xã mới nào. Địa chỉ có thể nằm ở khu vực ranh giới hoặc thông tin chưa chính xác.",
       "ERROR_SERVER_GEO": "Lỗi xử lý dữ liệu không gian trên máy chủ.",
       "ERROR_GEOCODING_FAILED": "Không thể tự động tìm tọa độ. Vui lòng kiểm tra lại thông tin Số nhà, Tên đường.",
-      "ERROR_STREET_INFO_NEEDED": "Phường/Xã này đã bị chia tách. Bạn phải cung cấp Số nhà, Tên đường để tìm địa chỉ mới.",
       "ERROR_NETWORK": "Lỗi kết nối mạng. Vui lòng kiểm tra lại đường truyền internet của bạn.",
       "ERROR_UNKNOWN": "Đã có lỗi không xác định xảy ra. Vui lòng thử lại sau.",
       
@@ -69,7 +68,7 @@ i18n
     lng: 'vi',
     fallbackLng: 'vi',
     interpolation: {
-      escapeValue: false // react already safes from xss
+      escapeValue: false
     }
   });
 

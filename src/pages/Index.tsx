@@ -6,15 +6,13 @@ import AddressForm from '../components/AddressForm';
 import ResultDisplay from '../components/ResultDisplay';
 import ErrorDisplay from '../components/ErrorDisplay';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { Card, CardContent } from '@/components/ui/card';
-import { MapPin, Calendar, GitBranch } from 'lucide-react';
 
 const Index = () => {
   const { t } = useTranslation();
   const [selectionTree, setSelectionTree] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [result, setResult] = useState<any>(null); // Use 'any' for simplicity, can be typed later
+  const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
   const [notification, setNotification] = useState('');
 
@@ -46,52 +44,31 @@ const Index = () => {
     setResult(null);
 
     try {
+      // Create the single payload for the backend
       const payload = {
         oldProvince: address.province,
         oldDistrict: address.district,
         oldWard: address.ward,
-        userCoordinates: null, // Start with null coordinates
+        streetInfo: address.streetInfo, // Pass street info directly
       };
 
-      const initialResponse = await axios.post('/api/lookup', payload);
-      const initialData = initialResponse.data;
+      // Make one single API call
+      const response = await axios.post('/api/lookup', payload);
+      
+      // The backend now returns the final result directly
+      setResult(response.data);
 
-      if (initialData.type === 'MERGED') {
-        setResult(initialData);
-      } else if (initialData.type === 'SPLITTED_REQUIRES_COORDS') {
-        setNotification(t(initialData.messageKey));
-        
-        if (address.streetInfo.trim()) {
-          setNotification(t('geocoding_in_progress'));
-          
-          const fullAddressString = `${address.streetInfo}, ${address.ward}, ${address.district}, ${address.province}, Vietnam`;
-          const geoUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddressString)}`;
-          
-          const geoResponse = await axios.get(geoUrl);
-          
-          if (geoResponse.data && geoResponse.data.length > 0) {
-            const { lat, lon } = geoResponse.data[0];
-            
-            const finalPayload = { ...payload, userCoordinates: { lat: parseFloat(lat), lon: parseFloat(lon) }};
-            const finalResponse = await axios.post('/api/lookup', finalPayload);
-            
-            setResult(finalResponse.data);
-            setNotification(''); // Clear notification on success
-          } else {
-            setError(t('ERROR_GEOCODING_FAILED'));
-            setNotification(''); // Clear notification on failure
-          }
-        } else {
-            // If street info is missing for a split ward, show an error.
-            setError(t('ERROR_STREET_INFO_NEEDED'));
-            setNotification('');
-        }
-      }
     } catch (err: any) {
       console.error('Lookup error:', err);
       const errData = err.response?.data;
       if (errData && errData.messageKey) {
-        setError(t(errData.messageKey, { meta: errData.meta || {} }));
+        // The backend now sends an info message for missing street info,
+        // which we can treat as an error on the frontend.
+        if (errData.messageKey === 'INFO_SPLIT_NEEDS_STREET_INFO') {
+          setError(t(errData.messageKey));
+        } else {
+          setError(t(errData.messageKey, { meta: errData.meta || {} }));
+        }
       } else if (err.code === 'ERR_NETWORK') {
         setError(t('ERROR_NETWORK'));
       } else {
