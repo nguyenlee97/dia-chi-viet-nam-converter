@@ -1,3 +1,4 @@
+// src/i18n.js
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
@@ -6,49 +7,51 @@ const resources = {
   vi: {
     translation: {
       // General UI
-      "appTitle": "Công Cụ Chuyển Đổi Địa Chỉ Cũ",
-      "appSubtitle": "Tra cứu đơn vị hành chính mới theo Nghị quyết số 202/2025/QH15",
+      "appTitle": "Công Cụ Tra Cứu Địa Giới Hành Chính Mới",
+      "appSubtitle": "Dữ liệu cập nhật theo các nghị quyết về sắp xếp đơn vị hành chính cấp huyện, cấp xã.",
+      "addressInputTitle": "Nhập địa chỉ cũ",
+      "addressInputDescription": "Điền thông tin địa chỉ cũ để tìm đơn vị hành chính mới tương ứng.",
       "streetInfoLabel": "Số nhà, Tên đường/phố/thôn/xóm",
-      "streetInfoPlaceholder": "Nhập số nhà và tên đường...",
-      "provinceLabel": "Chọn Tỉnh/Thành phố",
-      "provincePlaceholder": "-- Chọn Tỉnh/Thành phố --",
-      "districtLabel": "Chọn Quận/Huyện",
-      "districtPlaceholder": "-- Chọn Quận/Huyện --",
-      "wardLabel": "Chọn Phường/Xã",
-      "wardPlaceholder": "-- Chọn Phường/Xã --",
-      "submitButton": "Tra Cứu Địa Chỉ",
+      "streetInfoPlaceholder": "VD: 123 đường Nguyễn Huệ",
+      "provinceLabel": "Tỉnh/Thành phố",
+      "provincePlaceholder": "Chọn Tỉnh/Thành",
+      "districtLabel": "Quận/Huyện",
+      "districtPlaceholder": "Chọn Quận/Huyện",
+      "wardLabel": "Phường/Xã",
+      "wardPlaceholder": "Chọn Phường/Xã",
+      "submitButton": "Tra Cứu",
       "submittingButton": "Đang tra cứu...",
-      "loadingData": "Đang tải dữ liệu địa chỉ...",
-      "resetForm": "Làm mới",
+      "loadingData": "Đang tải dữ liệu...",
+      "resetForm": "Nhập lại",
       
       // Results
       "resultTitle": "Kết Quả Tra Cứu",
-      "oldAddressLabel": "Địa chỉ cũ:",
-      "newAddressLabel": "Địa chỉ mới:",
-      "mergedResult": "Phường/Xã này đã được sáp nhập",
-      "splittedResult": "Phường/Xã này đã được chia tách",
-      "coordinatesUsed": "Tọa độ được sử dụng:",
+      "oldAddressLabel": "Địa chỉ cũ",
+      "newAddressLabel": "Địa chỉ mới",
+      "mergedResult": "Sáp nhập",
+      "splittedResult": "Chia tách",
+      "coordinatesUsed": "Toạ độ đã dùng (kinh độ, vĩ độ):",
 
       // Status messages
-      "info_split_needs_coords": "Phường/Xã này đã được tách thành nhiều phường/xã mới. Chúng tôi cần định vị địa chỉ của bạn để tìm kết quả chính xác.",
+      "info_split_needs_coords": "Phường/Xã này đã được chia tách. Vui lòng nhập Số nhà, Tên đường để hệ thống tự động định vị.",
       "geocoding_in_progress": "Đang tìm tọa độ cho địa chỉ của bạn...",
-      "geocoding_success": "Đã tìm được tọa độ và xác định phường/xã mới",
+      "geocoding_success": "Đã định vị thành công",
       
       // Error Messages
-      "ERROR_COOLDOWN": "Bạn thao tác quá nhanh. Vui lòng thử lại sau {{timeLeft}} giây.",
-      "ERROR_RATE_LIMIT": "Bạn đã vượt quá số lần tra cứu cho phép (20 lần/giờ). Vui lòng thử lại lúc {{resetTime}}.",
+      "ERROR_COOLDOWN": "Bạn thao tác quá nhanh. Vui lòng thử lại sau {{meta.timeLeft}} giây.",
+      "ERROR_RATE_LIMIT": "Bạn đã vượt quá số lần tra cứu cho phép (20 lần/giờ). Vui lòng thử lại sau lúc {{meta.resetTime}}.",
       "ERROR_METHOD_NOT_ALLOWED": "Phương thức không hợp lệ.",
-      "ERROR_MISSING_ADDRESS": "Vui lòng chọn đầy đủ Tỉnh, Huyện và Phường.",
-      "ERROR_NOT_FOUND": "Không tìm thấy địa chỉ cũ trong dữ liệu của chúng tôi.",
-      "ERROR_SPLIT_NO_MATCH": "Không thể xác định vị trí của bạn trong bất kỳ phường/xã mới nào. Địa chỉ có thể nằm ở khu vực ranh giới.",
+      "ERROR_MISSING_ADDRESS": "Vui lòng chọn đầy đủ Tỉnh, Huyện và Phường/Xã.",
+      "ERROR_NOT_FOUND": "Không tìm thấy địa chỉ cũ trong cơ sở dữ liệu.",
+      "ERROR_SPLIT_NO_MATCH": "Không thể xác định vị trí của bạn trong bất kỳ phường/xã mới nào. Địa chỉ có thể nằm ở khu vực ranh giới hoặc thông tin chưa chính xác.",
       "ERROR_SERVER_GEO": "Lỗi xử lý dữ liệu không gian trên máy chủ.",
-      "ERROR_GEOCODING_FAILED": "Không thể tự động tìm thấy tọa độ cho địa chỉ của bạn. Vui lòng kiểm tra lại thông tin số nhà, tên đường.",
-      "ERROR_NETWORK": "Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet.",
-      "ERROR_UNKNOWN": "Đã có lỗi không xác định xảy ra. Vui lòng thử lại.",
+      "ERROR_GEOCODING_FAILED": "Không thể tự động tìm tọa độ. Vui lòng kiểm tra lại thông tin Số nhà, Tên đường.",
+      "ERROR_STREET_INFO_NEEDED": "Phường/Xã này đã bị chia tách. Bạn phải cung cấp Số nhà, Tên đường để tìm địa chỉ mới.",
+      "ERROR_NETWORK": "Lỗi kết nối mạng. Vui lòng kiểm tra lại đường truyền internet của bạn.",
+      "ERROR_UNKNOWN": "Đã có lỗi không xác định xảy ra. Vui lòng thử lại sau.",
       
       // Footer
-      "footerText": "Dữ liệu dựa trên Nghị quyết số 202/2025/QH15 của Ủy ban Thường vụ Quốc hội",
-      "lastUpdated": "Cập nhật lần cuối:"
+      "footerText": "Một sản phẩm phi lợi nhuận vì cộng đồng.",
     }
   }
 };
@@ -60,7 +63,7 @@ i18n
     lng: 'vi',
     fallbackLng: 'vi',
     interpolation: {
-      escapeValue: false
+      escapeValue: false // react already safes from xss
     }
   });
 
