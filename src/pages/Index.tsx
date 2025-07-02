@@ -159,7 +159,7 @@ const Index = () => {
               <span>{t('footerText')}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              {t('lastUpdated')} 2024
+              {t('lastUpdated')} 2025
             </p>
           </CardContent>
         </Card>

@@ -7,7 +7,7 @@ const resources = {
     translation: {
       // General UI
       "appTitle": "Công Cụ Chuyển Đổi Địa Chỉ Cũ",
-      "appSubtitle": "Tra cứu đơn vị hành chính mới theo Nghị quyết 1111/NQ-UBTVQH14",
+      "appSubtitle": "Tra cứu đơn vị hành chính mới theo Nghị quyết số 202/2025/QH15",
       "streetInfoLabel": "Số nhà, Tên đường/phố/thôn/xóm",
       "streetInfoPlaceholder": "Nhập số nhà và tên đường...",
       "provinceLabel": "Chọn Tỉnh/Thành phố",
@@ -47,7 +47,7 @@ const resources = {
       "ERROR_UNKNOWN": "Đã có lỗi không xác định xảy ra. Vui lòng thử lại.",
       
       // Footer
-      "footerText": "Dữ liệu dựa trên Nghị quyết 1111/NQ-UBTVQH14 của Ủy ban Thường vụ Quốc hội",
+      "footerText": "Dữ liệu dựa trên Nghị quyết số 202/2025/QH15 của Ủy ban Thường vụ Quốc hội",
       "lastUpdated": "Cập nhật lần cuối:"
     }
   }
