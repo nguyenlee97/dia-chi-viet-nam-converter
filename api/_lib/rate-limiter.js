@@ -2,7 +2,7 @@
 const userRequests = new Map();
 
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
-const MAX_REQUESTS_PER_WINDOW = 20;
+const MAX_REQUESTS_PER_WINDOW = 100;
 const COOLDOWN_MS = 10 * 1000; // 10 seconds
 
 export function checkRateLimit(ip) {
